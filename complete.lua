@@ -16,7 +16,6 @@ function completion(word, line, startpos, endpos)
       'function', 'if', 'in', 'local', 'nil', 'not', 'or', 'repeat',
       'return', 'then', 'true', 'until', 'while' }
 
-
    -- Helper function registering possible completion words, verifying matches.
    local matches = { }
    local function add(value)
@@ -24,6 +23,20 @@ function completion(word, line, startpos, endpos)
       if value:match("^"..word) then
 	 matches[#matches+1] = value
       end
+   end
+
+   local function rtt_constructor(tab)
+      local mt = getmetatable(tab)
+      if mt == getmetatable(rtt.Variable) then return 'Variable'
+      elseif mt == getmetatable(rtt.Property) then return 'Property'
+      elseif mt == getmetatable(rtt.InputPort) then return 'InputPort'
+      elseif mt == getmetatable(rtt.OutputPort) then return 'OutputPort'
+      elseif mt == getmetatable(rtt.EEHook) then return 'EEHook' end
+      return false
+   end
+
+   local function complete_rtt_type()
+      for _,v in ipairs(rtt.types()) do add("'"..v.."'") end
    end
 
    -- This function does the same job as the default completion of readline,
@@ -83,7 +96,7 @@ function completion(word, line, startpos, endpos)
    -- variable can be inserted. Local variables cannot be listed!
    local function add_globals()
       for _,k in ipairs(keywords) do
-	 add(k..' ')
+	 add(k..'')
       end
       for k,v in pairs(_G) do
 	 add(k..postfix(v))
@@ -96,6 +109,7 @@ function completion(word, line, startpos, endpos)
    local function contextual_list(expr, sep, str)
       stderr("contextual_list, expr:" .. ts(expr), " sep:" .. ts(sep) .. " str:".. ts(str), '\n')
       -- mk: we want to complete op names etc: if str then return filename_list(str) end
+      --if expr == nil or expr == "" then return add_globals() end
       if expr == nil or expr == "" then return add_globals() end
       local v = loadstring("return "..expr)
       if not v then return end
@@ -114,9 +128,7 @@ function completion(word, line, startpos, endpos)
 	       utils.table_has(parts, "size") and utils.table_has(parts, "capacity") then
 	       return
 	    else
-	       for k,v in pairs(parts) do
-		  add(v)
-	       end
+	       for k,v in pairs(parts) do add(v) end
 	    end
 	 else
 	    return
@@ -144,8 +156,14 @@ function completion(word, line, startpos, endpos)
 	 -- The following is just a useless example:
 	 if t == 'Operation' then
 	    io.stderr:write('\n'..tostring(v))
+	 elseif t=='table' then
+	    -- This doesn't work yet, because the simplify_expression
+	    -- eats up our string.
+	    local typ=rtt_constructor(v)
+	    if typ == 'Variable' then complete_rtt_type() end
+	 elseif t=='TaskContext' then
+	    print(v)
 	 end
-	 -- add("°") -- display trick (mk:?)
       end
    end
 
