@@ -1,11 +1,21 @@
+require "rttlib"
+require "readline"
+require "utils"
+
+local ts = tostring
+local stderr=function(...) return end
+
 -- This function is called back by C function do_completion, itself called
 -- back by readline library, in order to complete the current input line.
 function completion(word, line, startpos, endpos)
+   stderr("\nmain, word:" .. ts(word), " line:" .. ts(line),
+	  " start:".. ts(startpos), " end:".. ts(endpos) .. '\n')
    -- The complete list of Lua keywords
    local keywords = {
       'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for',
       'function', 'if', 'in', 'local', 'nil', 'not', 'or', 'repeat',
       'return', 'then', 'true', 'until', 'while' }
+
 
    -- Helper function registering possible completion words, verifying matches.
    local matches = { }
@@ -33,12 +43,33 @@ function completion(word, line, startpos, endpos)
       end
    end
 
+   --- Complete (metatable) operations for a callable rtt object
+   local function callable_rtt_obj_add_ops(o)
+      local res = {}
+      local mt = getmetatable(o)
+      for name,_ in pairs(mt) do
+	 add(name ..'(')
+      end
+   end
+
+   local function taskcontext_add_ops(tc)
+      local res = {}
+      local mt = getmetatable(tc)
+
+      for name,_ in pairs(mt) do res[#res+1] = name end
+      for _,op in ipairs(tc:getOps()) do res[#res+1] = op end
+
+      for _,op in ipairs(utils.table_unique(res)) do add(op .. '(') end
+   end
+
    -- This function makes a guess of the next character following an identifier,
    -- based on the type of the value it holds.
    local function postfix(value)
-      local t = type(value)
+      local t = rttlib.rtt_type(value)
       if t == 'function' or (getmetatable(value) or {}).__call then
 	 return '('
+      elseif t == 'TaskContext' then return ':'
+      elseif t == 'InputPort' or t=='OutputPort' then return ':'
       elseif t == 'table' and #value > 0 then
 	 return '['
       elseif t == 'table' then
@@ -63,18 +94,41 @@ function completion(word, line, startpos, endpos)
    -- to determine its type. Currently supports tables fields, global
    -- variables and function prototype completion.
    local function contextual_list(expr, sep, str)
-      if str then return filename_list(str) end
+      stderr("contextual_list, expr:" .. ts(expr), " sep:" .. ts(sep) .. " str:".. ts(str), '\n')
+      -- mk: we want to complete op names etc: if str then return filename_list(str) end
       if expr == nil or expr == "" then return add_globals() end
       local v = loadstring("return "..expr)
       if not v then return end
       v = v()
-      local t = type(v)
+      local t = rttlib.rtt_type(v)
       if sep == '.' then
-	 if t ~= 'table' then return end
-	 for k,v2 in pairs(v) do
-	    if type(k) == 'string' then
-	       add(k..postfix(v2))
+	 if t == 'table' then
+	    for k,v2 in pairs(v) do
+	       if type(k) == 'string' then
+		  add(k..postfix(v2))
+	       end
 	    end
+	 elseif t=='Variable' then
+	    local parts = v:getMemberNames()
+	    if #parts == 2 and -- catch arrays
+	       utils.table_has(parts, "size") and utils.table_has(parts, "capacity") then
+	       return
+	    else
+	       for k,v in pairs(parts) do
+		  add(v)
+	       end
+	    end
+	 else
+	    return
+	 end
+      elseif sep == ':' then
+      	 if t == 'TaskContext' then taskcontext_add_ops(v)
+	 elseif t == 'InputPort' or t=='OutputPort' or t=='Variable' or
+	    t=='EEHook' or t=='Operation' or t=='SendHandle' or t=='Service' or
+	    t=='ServiceRequester' then
+	    callable_rtt_obj_add_ops(v)
+	 else
+	    return
 	 end
       elseif sep == '[' then
 	 if t ~= 'table' then return end
@@ -88,8 +142,10 @@ function completion(word, line, startpos, endpos)
 	 -- This is a great place to return the prototype of the function,
 	 -- in case your application has some mean to know it.
 	 -- The following is just a useless example:
-	 add("function "..expr.." (...)"..string.rep(" ", 40))
-	 add("°") -- display trick
+	 if t == 'Operation' then
+	    io.stderr:write('\n'..tostring(v))
+	 end
+	 -- add("°") -- display trick (mk:?)
       end
    end
 
@@ -105,21 +161,21 @@ function completion(word, line, startpos, endpos)
       local curstring
       -- remove (finished and unfinished) literal strings
       while true do
-	 local idx1,_,equals = expr:find("%[(=*)%[")
-	 local idx2,_,sign = expr:find("(['\"])")
-	 if idx1 == nil and idx2 == nil then break end
-	 local idx,startpat,endpat
-	 if (idx1 or math.huge) < (idx2 or math.huge) then
-	    idx,startpat,endpat  = idx1, "%["..equals.."%[", "%]"..equals.."%]"
-	 else
-	    idx,startpat,endpat = idx2, sign, sign
-	 end
-	 if expr:sub(idx):find("^"..startpat..".-"..endpat) then
-	    expr = expr:gsub(startpat.."(.-)"..endpat, " STRING ")
-	 else
-	    expr = expr:gsub(startpat.."(.*)", function(str)
-						  curstring = str; return "(CURSTRING " end)
-	 end
+      	 local idx1,_,equals = expr:find("%[(=*)%[")
+      	 local idx2,_,sign = expr:find("(['\"])")
+      	 if idx1 == nil and idx2 == nil then break end
+      	 local idx,startpat,endpat
+      	 if (idx1 or math.huge) < (idx2 or math.huge) then
+      	    idx,startpat,endpat  = idx1, "%["..equals.."%[", "%]"..equals.."%]"
+      	 else
+      	    idx,startpat,endpat = idx2, sign, sign
+      	 end
+      	 if expr:sub(idx):find("^"..startpat..".-"..endpat) then
+      	    expr = expr:gsub(startpat.."(.-)"..endpat, " STRING ")
+      	 else
+      	    expr = expr:gsub(startpat.."(.*)", function(str)
+      						  curstring = str; return "(CURSTRING " end)
+      	 end
       end
       expr = expr:gsub("%b()"," PAREN ")      -- remove groups of parentheses
       expr = expr:gsub("%b{}"," TABLE ")      -- remove table constructors
@@ -128,7 +184,7 @@ function completion(word, line, startpos, endpos)
       expr = expr:gsub("%s","")               -- remove now useless spaces
       -- This main regular expression looks for table indexes and function calls.
       -- You may have to complete it depending on your application.
-      return curstring,expr:match("([%.%w%[%]_]-)([%.%[%(])"..word.."$")
+      return curstring,expr:match("([%.%w%[%]_]-)([%.%:%[%(])"..word.."$")
    end
 
    -- Now calls the processing functions and returns the list of results.

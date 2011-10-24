@@ -104,7 +104,7 @@ static int init_completion(lua_State* L)
 	stateL = L;
 	rl_attempted_completion_function = do_completion;
 	/* This is a list of Lua operators, separating words. */
-	rl_basic_word_break_characters = " \t\n\"\\'><=;+-*/%^~#{}()[].,";
+	rl_basic_word_break_characters = " \t\n\"\\'><=;+-*/%^~#{}()[].:,";
 	/* Inhibits the default added space on completed words. */
 	rl_completion_append_character = '\0';
 	/* The completion Lua function is loaded here. The user might prefer
