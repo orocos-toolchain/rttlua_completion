@@ -44,9 +44,29 @@ static int f_add_history(lua_State* L)
 	return 0;
 }
 
+static int f_read_history(lua_State *L)
+{
+	const char* file = lua_tostring(L,1);
+	if(read_history(file) != 0)
+		luaL_error(L, "reading history from file %s failed", file);
+	lua_pushboolean(L, 1);
+	return 1;
+}
+
+static int f_write_history(lua_State *L)
+{
+	const char* file = lua_tostring(L,1);
+	if(write_history(file) != 0)
+		luaL_error(L, "writing history from file %s failed", file);
+	lua_pushboolean(L, 1);
+	return 1;
+}
+
 static const struct luaL_reg lib[] = {
 	{"readline", f_readline},
 	{"add_history",f_add_history},
+	{"read_history", f_read_history},
+	{"write_history", f_write_history},
 	{NULL, NULL},
 };
 
