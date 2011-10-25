@@ -1,3 +1,6 @@
+-- This Lua file implements the main completion.
+-- Licensed under the MIT License.
+
 require "rttlib"
 require "readline"
 require "utils"
