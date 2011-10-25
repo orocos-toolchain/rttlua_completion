@@ -1,0 +1,66 @@
+Completion and History support for the rttlua shell
+===================================================
+
+INSTALL
+-------
+
+Provided you have libreadline installed, running
+
+$ make
+
+should build the two modules involved:
+
+ - complete.lua
+ - readline.so
+
+SETUP
+-----
+
+Add the build directory to your LUA_PATH and LUA_CPATH:
+
+$ export LUA_PATH="$LUA_PATH;$HOME/src/git/rttlua-completion/?.lua"
+$ export LUA_CPATH="$LUA_CPATH;$HOME/src/git/rttlua-completion/?.so"
+
+
+RUNNING
+-------
+
+either run rttlua as follows:
+
+$ rttlua-gnulinux -lcomplete
+
+or put the following line in your ~/.rttlua file
+
+require "complete"
+
+When you're in the Lua shell, hit tab to get possible completions.
+
+
+HISTORY SUPPORT
+---------------
+
+The following command line history related commands are provided in
+the 'readline' module:
+
+| function                | description                              |
+|-------------------------+------------------------------------------|
+| add_history(string)     | add a string to the history              |
+| read_history(filename)  | read the history from the given filename |
+| write_history(filename) | write the current history to a file      |
+
+
+BUGS
+----
+
+The completion is not very smart regarding RTT, i.e. in the following
+it will not smartly complete the known types:
+
+rtt.Variable("
+
+
+Patches to fix this are welcome.
+
+
+LICENSE
+-------
+Licensed under the MIT License.
