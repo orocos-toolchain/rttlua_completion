@@ -18,8 +18,12 @@ SETUP
 
 Add the build directory to your LUA_PATH and LUA_CPATH:
 
-$ export LUA_PATH="$LUA_PATH;$HOME/src/git/rttlua_completion/?.lua"
-$ export LUA_CPATH="$LUA_CPATH;$HOME/src/git/rttlua_completion/?.so"
+$ export LUA_PATH=";;;$HOME/src/git/rttlua_completion/?.lua;$LUA_PATH"
+$ export LUA_CPATH=";;;$HOME/src/git/rttlua_completion/?.so;$LUA_CPATH"
+
+Note that in virtually all cases, you want your LUA_PATH and
+LUA_CPATH variables to start with ';;;', which means: search
+standard system paths as well.
 
 
 RUNNING
@@ -27,14 +31,14 @@ RUNNING
 
 either run rttlua as follows:
 
-$ rttlua-gnulinux -lcomplete
+$ rttlua-gnulinux -lcomplete -lreadline
 
 or put the following line in your ~/.rttlua file
 
 require "complete"
+require "readline"
 
 When you're in the Lua shell, hit tab to get possible completions.
-
 
 HISTORY SUPPORT
 ---------------
@@ -48,6 +52,15 @@ the 'readline' module:
 | read_history(filename)  | read the history from the given filename |
 | write_history(filename) | write the current history to a file      |
 
+For example, you can put this command snippet
+in your ~/.rttlua file:
+
+if io.open(".rttlua_history") then
+ io:close()
+ read_history(".rttlua_history")
+end
+
+There is currently no mechanism to automatically save the history.
 
 BUGS
 ----
