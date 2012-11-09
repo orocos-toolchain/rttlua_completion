@@ -75,7 +75,17 @@ function completion(word, line, startpos, endpos)
       for name,_ in pairs(mt) do res[#res+1] = name end
       for _,op in ipairs(tc:getOps()) do res[#res+1] = op end
 
-      for _,op in ipairs(utils.table_unique(res)) do add(op .. '(') end
+      for _,op in ipairs(utils.table_unique(res)) do
+	 local typ, ar = nil
+	 if tc:hasOperation(op) then typ,ar = tc:getOpInfo(op) end
+	 if not ar or ar ~= 0 then
+	    -- unknown lua function or multiple arguments:
+	    add(op..'(')
+	 else
+	    -- known that this op takes no arguments:
+	    add(op..'()')
+	 end
+      end
    end
 
    -- This function makes a guess of the next character following an identifier,
@@ -131,7 +141,7 @@ function completion(word, line, startpos, endpos)
 	       utils.table_has(parts, "size") and utils.table_has(parts, "capacity") then
 	       return
 	    else
-	       for k,v in pairs(parts) do add(v) end
+	       for k,v2 in pairs(parts) do add(v2) end
 	    end
 	 else
 	    return
