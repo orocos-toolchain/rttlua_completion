@@ -18,8 +18,8 @@ SETUP
 
 Add the build directory to your LUA_PATH and LUA_CPATH:
 
-$ export LUA_PATH="$LUA_PATH;$HOME/src/git/rttlua-completion/?.lua"
-$ export LUA_CPATH="$LUA_CPATH;$HOME/src/git/rttlua-completion/?.so"
+$ export LUA_PATH="$LUA_PATH;$HOME/src/git/rttlua_completion/?.lua"
+$ export LUA_CPATH="$LUA_CPATH;$HOME/src/git/rttlua_completion/?.so"
 
 
 RUNNING
