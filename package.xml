@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <name>rttlua_completion</name>
+  <version>1.0.0</version>
+  <description>This package contains the rttlua_completion utility.</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
+  <maintainer email="orocos-dev@lists.mech.kuleuven.be">Orocos Developers</maintainer>
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <license>MIT</license>
+
+  <!-- Author tags are optional, mutiple are allowed, one per tag -->
+  <author email="markus.klotzbuecher@mech.kuleuven.be">Markus Klotzbuecher</author>
+
+  <!-- The *_depend tags are used to specify dependencies -->
+  <!-- Dependencies can be catkin packages or system dependencies -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>ocl</run_depend>
+
+</package>
