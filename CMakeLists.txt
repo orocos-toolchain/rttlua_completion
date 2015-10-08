@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 2.8.3)
 project(rttlua_completion)
 
 find_package(catkin REQUIRED)
-catkin_package()
+
+find_package(Lua51 REQUIRED)
+
+catkin_package(
+  DEPENDS Lua51
+)
 catkin_add_env_hooks(10.rttlua_completion SHELLS sh DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/env-hooks)
 
 #############
@@ -11,8 +16,6 @@ catkin_add_env_hooks(10.rttlua_completion SHELLS sh DIRECTORY ${CMAKE_CURRENT_SO
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
-
-find_package(Lua51 REQUIRED)
 
 # Copied from rtt/config/check_depend.cmake
 FIND_PATH( READLINE_H readline/readline.h )
