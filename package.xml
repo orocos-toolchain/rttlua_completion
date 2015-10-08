@@ -17,6 +17,9 @@
   <!-- Dependencies can be catkin packages or system dependencies -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>lua-dev</build_depend>
+  <run_depend>lua-dev</run_depend>
+
   <run_depend>ocl</run_depend>
 
 </package>
