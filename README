@@ -25,6 +25,7 @@ Note that in virtually all cases, you want your LUA_PATH and
 LUA_CPATH variables to start with ';;;', which means: search
 standard system paths as well.
 
+_NOTE_ the env hooks will setup the paths automatically.
 
 RUNNING
 -------
