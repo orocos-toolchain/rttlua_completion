@@ -7,4 +7,5 @@ export LUA_PATH="$LUA_PATH;@CMAKE_INSTALL_PREFIX@/share/lua/5.1/rttlua_completio
 if [ "x$LUA_CPATH" = "x" ]; then
    LUA_CPATH=";"
 fi
-export LUA_CPATH="$LUA_CPATH;@CMAKE_INSTALL_PREFIX@/share/lua/5.1/rttlua_completion/?.so"
+export LUA_CPATH="$LUA_CPATH;@CMAKE_INSTALL_PREFIX@/lib/?.so"
+
