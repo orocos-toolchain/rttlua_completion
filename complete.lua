@@ -77,7 +77,27 @@ function completion(word, line, startpos, endpos)
 
       for _,op in ipairs(utils.table_unique(res)) do
 	 local typ, ar = nil
-	 if tc:hasOperation(op) then typ,ar = tc:getOpInfo(op) end
+	 if tc:hasOperation(op) then _,typ,ar = tc:getOpInfo(op) end
+	 if not ar or ar ~= 0 then
+	    -- unknown lua function or multiple arguments:
+	    add(op..'(')
+	 else
+	    -- known that this op takes no arguments:
+	    add(op..'()')
+	 end
+      end
+   end
+
+   local function service_add_ops(serv)
+      local res = {}
+      local mt = getmetatable(serv)
+
+      for name,_ in pairs(mt) do res[#res+1] = name end
+      for _,op in ipairs(serv:getOperationNames()) do res[#res+1] = op end
+
+      for _,op in ipairs(utils.table_unique(res)) do
+	 local typ, ar = nil
+	 if serv:hasOperation(op) then _,typ,ar = serv:getOperationInfo(op) end
 	 if not ar or ar ~= 0 then
 	    -- unknown lua function or multiple arguments:
 	    add(op..'(')
@@ -148,8 +168,9 @@ function completion(word, line, startpos, endpos)
 	 end
       elseif sep == ':' then
       	 if t == 'TaskContext' then taskcontext_add_ops(v)
+     elseif t == 'Service' then service_add_ops(v)
 	 elseif t == 'InputPort' or t=='OutputPort' or t=='Variable' or
-	    t=='EEHook' or t=='Operation' or t=='SendHandle' or t=='Service' or
+	    t=='EEHook' or t=='Operation' or t=='SendHandle' or
 	    t=='ServiceRequester' then
 	    callable_rtt_obj_add_ops(v)
 	 else
