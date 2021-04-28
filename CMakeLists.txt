@@ -1,10 +1,9 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.3)
 project(rttlua_completion)
 
-find_package(catkin REQUIRED)
-catkin_package()
-catkin_add_env_hooks(10.rttlua_completion SHELLS sh DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/env-hooks)
-
+find_package(ament_cmake REQUIRED)
+ament_environment_hooks(env-hooks/rttlua_completion.sh.in)
+ament_package()
 #############
 ## Install ##
 #############
@@ -49,11 +48,12 @@ set_target_properties(readline PROPERTIES PREFIX "")
 file(GLOB LUA_FILES "*.lua")
 install(
   FILES ${LUA_FILES}
-  DESTINATION ${CATKIN_GLOBAL_SHARE_DESTINATION}/lua/5.1/rttlua_completion/
+  DESTINATION share/lua/5.1/rttlua_completion/
 )
 
 install(
   TARGETS readline
-  DESTINATION ${CATKIN_GLOBAL_SHARE_DESTINATION}/lua/5.1/rttlua_completion/
+  DESTINATION share/lua/5.1/rttlua_completion/
 )
+
 
